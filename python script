@@ -1,0 +1,81 @@
+from tkinter import Tk, Label, Button, filedialog, font
+from moviepy.editor import *
+import os
+
+
+class App:
+    def __init__(self, root):
+        self.root = root
+        root.title("Merge audio and pic to video")
+
+        # Initialize audio and image paths
+        self.audio_path = ""
+        self.image_path = ""
+
+        self.label = Label(root, text="Merge an audio file and an image into a video")
+        self.label['font'] = font.Font(size=16, weight='bold')
+        self.label.pack()
+
+        self.upload_audio_button = Button(root, text="Upload audio", command=self.upload_audio, width=20, height=2)
+        self.upload_audio_button.pack(side="left")
+
+        self.audio_filename_label = Label(root, text="", width=20)
+        self.audio_filename_label.pack(side="left")
+
+        self.upload_pic_button = Button(root, text="Upload pic", command=self.upload_pic, width=20, height=2)
+        self.upload_pic_button.pack(side="left")
+
+        self.pic_filename_label = Label(root, text="", width=20)
+        self.pic_filename_label.pack(side="left")
+
+        self.save_button = Button(root, text="Save", command=self.save, width=20, height=2)
+        self.save_button.pack()
+
+    # Function to upload audio
+    def upload_audio(self):
+        self.audio_path = filedialog.askopenfilename(title="Select an audio file",
+                                                     filetypes=[("Audio Files", "*.mp3 *.wav")])
+        if self.audio_path:
+            self.audio_filename_label.config(text=os.path.basename(self.audio_path))
+
+    # Function to upload pic
+    def upload_pic(self):
+        self.image_path = filedialog.askopenfilename(title="Select an image file",
+                                                     filetypes=[("Image Files", "*.jpg *.png")])
+        if self.image_path:
+            self.pic_filename_label.config(text=os.path.basename(self.image_path))
+
+    # Function to merge and save
+    def save(self):
+        if self.audio_path and self.image_path:
+            # Open save file dialog
+            save_path = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4")])
+            if not save_path:
+                print("Saving cancelled.")
+                return
+
+            # Load image
+            image = ImageClip(self.image_path)
+
+            # Load audio
+            audio = AudioFileClip(self.audio_path)
+
+            # Setting image duration to audio duration
+            image = image.set_duration(audio.duration)
+
+            # Set frames per second
+            image.fps = 24
+
+            # Attach audio to image
+            video = image.set_audio(audio)
+
+            # Save the video
+            video.write_videofile(save_path, codec="libx264", fps=24)
+            print(f"Video created successfully and saved as {save_path}")
+        else:
+            print("Please upload both an audio file and an image file before saving.")
+
+
+root = Tk()
+app = App(root)
+root.mainloop()
